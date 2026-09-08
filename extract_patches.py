@@ -47,13 +47,15 @@ def git_text(root: str, *args: str) -> str:
     return git(root, *args).decode("utf-8", "replace")
 
 
-def snapshot(root: str, commit: str, pattern: re.Pattern) -> Dict[str, str]:
+def snapshot(root: str, commit: str, pattern: re.Pattern, exclude_prefix: str = "") -> Dict[str, str]:
     present: Dict[str, str] = {}
     out = git(root, "ls-tree", "-r", "-z", commit)
     for entry in out.decode("utf-8", "replace").split("\0"):
         if not entry:
             continue
         head, _, path = entry.rpartition("\t")
+        if exclude_prefix and path.startswith(exclude_prefix):
+            continue
         if pattern.match(os.path.basename(path)):
             present[os.path.basename(path)] = head.split(" ")[2]
     return present
@@ -120,8 +122,13 @@ def main(argv: List[str] | None = None) -> int:
     head_present: Dict[str, str] = {}
     active: Dict[str, Tuple[str, int]] = {}
 
+    out_dir = args.out
+    if not os.path.isabs(out_dir):
+        out_dir = os.path.join(root, out_dir)
+    exclude_prefix = os.path.relpath(out_dir, root) + "/"
+
     for idx, commit in enumerate(commits):
-        present = snapshot(root, commit, pattern)
+        present = snapshot(root, commit, pattern, exclude_prefix)
         for label in list(active):
             blob, start = active[label]
             if label not in present or present[label] != blob:
@@ -154,10 +161,6 @@ def main(argv: List[str] | None = None) -> int:
             f"no file matching {args.pattern!r} found anywhere in the history "
             f"of {args.ref!r}"
         )
-
-    out_dir = args.out
-    if not os.path.isabs(out_dir):
-        out_dir = os.path.join(root, out_dir)
 
     plan: List[Tuple[str, str, str, bytes, Tuple[str, str, str], bool]] = []
     for label in sorted(revisions, key=natural_key):
@@ -223,8 +226,14 @@ def main(argv: List[str] | None = None) -> int:
         return 0
 
     os.makedirs(out_dir, exist_ok=True)
+    skipped = 0
     for _, filename, _, content, _, _ in plan:
         path = os.path.join(out_dir, filename)
+        if os.path.isfile(path):
+            with open(path, "rb") as fh:
+                if fh.read() == content:
+                    skipped += 1
+                    continue
         with open(path, "wb") as fh:
             fh.write(content)
 
@@ -252,7 +261,8 @@ def main(argv: List[str] | None = None) -> int:
 
     if not args.quiet:
         print()
-        print(f"wrote {len(plan)} file(s) + INDEX.md to {out_dir}")
+        print(f"wrote {len(plan) - skipped} file(s) + INDEX.md to {out_dir}"
+              f"  ({skipped} skipped, already up-to-date)")
     return 0
 
 
