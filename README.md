@@ -4,12 +4,40 @@ This guide explains how to get audio working correctly on the Lenovo Legion Pro 
 
 ## Upstream status
 
-The AW88399 HDA side codec driver has been merged into the Linux kernel and will ship [starting with kernel 7.3-rc1](https://github.com/torvalds/linux/commit/e5c91aac491def6ab3f90c4cc246e3fcb0f8f058).
-Once you are running kernel 7.3-rc1 or later, the laptop's woofers will work without any custom kernel, provided the `aw88399_acf.bin` firmware is installed in `/lib/firmware` (see step 1 of the main guide below).
+The AW88399 HDA side codec driver has been merged into the Linux kernel and is now shipping [starting with kernel 7.3-rc1](https://github.com/torvalds/linux/commit/e5c91aac491def6ab3f90c4cc246e3fcb0f8f058).
+Once you are running kernel 7.3-rc1 or later, the laptop's woofers will work without any custom kernel, **provided the `aw88399_acf.bin` firmware is installed in `/lib/firmware` and the AW88399 HDA modules are loaded correctly** (see the troubleshooting section below).
 
-Until kernel 7.3 is released, this guide explains how to enable full audio support on current kernels and will continue to be updated as needed.
+Until the stable kernel 7.3 release starts shipping, this guide explains how to enable full audio support on current kernels and will continue to be updated as needed.
 
-The only remaining step to achieve a completely zero-configuration experience is making the firmware available through the `linux-firmware` repository under a compatible license, allowing Linux distributions to install it automatically. Until then, users will need to install the firmware manually. See [#65](https://github.com/nadimkobeissi/16iax10h-linux-sound-saga/issues/65#issuecomment-5130273339) for more information on this issue and how to help with the firmware effort.
+The only remaining step toward a fully zero-configuration experience is getting the `aw88399_acf.bin` firmware accepted into the `linux-firmware` repository. Until then, users need to install it manually regardless of kernel version. See [#65](https://github.com/nadimkobeissi/16iax10h-linux-sound-saga/issues/65#issuecomment-5130273339) for more information and how to help.
+
+## Audio still broken even on kernel 7.3-rc1+
+
+If you are on kernel 7.3-rc1 or later and audio is still broken, please perform these checks before opening an issue:
+
+1. Is the firmware installed?
+
+```bash
+ls /lib/firmware/aw88399_acf.bin
+```
+
+If this returns "No such file or directory", the firmware is missing. Copy `aw88399_acf.bin` from this repository to `/lib/firmware/aw88399_acf.bin` and reboot (see step 1 of the main guide below). *This step is required regardless of kernel version until the firmware is accepted into the `linux-firmware` repository.*
+
+2. Are the kernel modules loaded?
+
+```bash
+lsmod | grep snd_hda_scodec_aw88399
+```
+
+You need to have the `snd_hda_scodec_aw88399` and `snd_hda_scodec_aw88399_i2c` modules loaded for the driver to be enabled. If they are missing from `lsmod`, check the config parameters that were used to build the current kernel:
+
+```bash
+cat /boot/config-$(uname -r) | grep CONFIG_SND_HDA_SCODEC_AW88399
+# or on some distros:
+zcat /proc/config.gz | grep CONFIG_SND_HDA_SCODEC_AW88399
+```
+
+Both `CONFIG_SND_HDA_SCODEC_AW88399=m` and `CONFIG_SND_HDA_SCODEC_AW88399_I2C=m` need to be there for the driver to work. If instead you see `# CONFIG_SND_HDA_SCODEC_AW88399_I2C is not set`, your distribution has not enabled the driver; contact your kernel maintainers and ask them to enable these config parameters.
 
 ## Filing issues
 
