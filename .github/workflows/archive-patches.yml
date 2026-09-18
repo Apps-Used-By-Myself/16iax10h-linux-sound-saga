@@ -22,8 +22,8 @@ permissions:
   contents: write
 
 env:
-  UPSTREAM_REPO: ${{ inputs.upstream-repo || 'nadimkobeissi/16iax10h-linux-sound-saga' }}
-  UPSTREAM_BRANCH: ${{ inputs.upstream-branch || 'main' }}
+  UPSTREAM_REPO: ${{ github.event.inputs['upstream-repo'] || 'nadimkobeissi/16iax10h-linux-sound-saga' }}
+  UPSTREAM_BRANCH: ${{ github.event.inputs['upstream-branch'] || 'main' }}
 
 jobs:
   archive:
@@ -34,9 +34,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Configure Git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
       - name: Sync upstream
         run: |
-          git remote get-url upstream 2>/dev/null || git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          if git remote get-url upstream >/dev/null 2>&1; then
+            git remote set-url upstream "https://github.com/${UPSTREAM_REPO}.git"
+          else
+            git remote add upstream "https://github.com/${UPSTREAM_REPO}.git"
+          fi
+
           git fetch upstream "${UPSTREAM_BRANCH}"
           git merge --no-edit "upstream/${UPSTREAM_BRANCH}"
 
@@ -46,9 +56,9 @@ jobs:
       - name: Commit archive changes
         id: commit
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f patch-archive/
+          mkdir -p patch-archive
+          git add -f patch-archive
+
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
