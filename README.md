@@ -4,12 +4,18 @@ This guide explains how to get audio working correctly on the Lenovo Legion Pro 
 
 ## Upstream status
 
+### Driver status
+
 The AW88399 HDA side codec driver has been merged into the Linux kernel and is now shipping [starting with kernel 7.3-rc1](https://github.com/torvalds/linux/commit/e5c91aac491def6ab3f90c4cc246e3fcb0f8f058).
 Once you are running kernel 7.3-rc1 or later, the laptop's woofers will work without any custom kernel, **provided the `aw88399_acf.bin` firmware is installed in `/lib/firmware` and the AW88399 HDA modules are loaded correctly** (see the troubleshooting section below).
 
 Until the stable kernel 7.3 release starts shipping, this guide explains how to enable full audio support on current kernels and will continue to be updated as needed.
 
-The only remaining step toward a fully zero-configuration experience is getting the `aw88399_acf.bin` firmware accepted into the `linux-firmware` repository. Until then, users need to install it manually regardless of kernel version. See [#65](https://github.com/nadimkobeissi/16iax10h-linux-sound-saga/issues/65#issuecomment-5130273339) for more information and how to help.
+The only remaining step toward a fully zero-configuration experience is getting the `aw88399_acf.bin` firmware accepted into the `linux-firmware` repository. Until then, users need to install it manually regardless of kernel version.
+
+### Firmware status
+
+The ACF firmware binary for all currently supported Lenovo Legion models [has been submitted by Awinic on behalf of Lenovo to the `linux-firmware` repo](https://lore.kernel.org/linux-firmware/4b70e056-89d9-4d92-8ecb-ecb4c7d48c8a@app.fastmail.com/T/#t), and is currently pending for review; after it gets merged, a follow-up patch series will be needed for the kernel driver to be able to parse these files ([see here](https://github.com/marco-giunta/legion-pro7-gen10-audio/tree/legion_audio/upstream-fw) for more info).
 
 ## Audio still broken even on kernel 7.3-rc1+
 
@@ -37,7 +43,7 @@ cat /boot/config-$(uname -r) | grep CONFIG_SND_HDA_SCODEC_AW88399
 zcat /proc/config.gz | grep CONFIG_SND_HDA_SCODEC_AW88399
 ```
 
-Both `CONFIG_SND_HDA_SCODEC_AW88399=m` and `CONFIG_SND_HDA_SCODEC_AW88399_I2C=m` need to be there for the driver to work. If instead you see `# CONFIG_SND_HDA_SCODEC_AW88399_I2C is not set`, your distribution has not enabled the driver; contact your kernel maintainers and ask them to enable these config parameters.
+`CONFIG_SND_HDA_SCODEC_AW88399_I2C=m` needs to be there for the driver to work. If instead you see `# CONFIG_SND_HDA_SCODEC_AW88399_I2C is not set`, your distribution has not enabled the driver; contact your kernel maintainers and ask them to enable this config parameter.
 
 ## Filing issues
 
