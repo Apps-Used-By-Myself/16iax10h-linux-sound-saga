@@ -126,8 +126,7 @@ If you prefer to obtain your own copy of this firmware blob, [follow these instr
 
 This patch is tested under the following kernel versions. Click the one you desire to download its corresponding source code:
 
-- [Linux 7.1.13](https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.1.13.tar.xz)
-- [Linux 7.2.5](https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.2.5.tar.xz)
+- [Linux 7.2.9](https://cdn.kernel.org/pub/linux/kernel/v7.x/linux-7.2.9.tar.xz)
 
 ### Step 3: Patch the Linux Kernel Sources
 
