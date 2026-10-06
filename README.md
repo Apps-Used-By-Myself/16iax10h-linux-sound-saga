@@ -56,6 +56,7 @@ Please don't file issues to complain about something missing. Filing issues abou
 - Lenovo Legion Y9000P (**[IAX10H](https://github.com/nadimkobeissi/16iax10h-linux-sound-saga/issues/42)**)
 - Lenovo Legion R9000P (**[ADR10](https://github.com/marco-giunta/legion-pro7-gen10-audio/issues/3)**)
 - Lenovo Legion R9000P (**[ADR10H](https://github.com/marco-giunta/legion-pro7-gen10-audio/issues/8)**)
+- Lenovo Legion R9000P (**[AFR10](https://github.com/marco-giunta/legion-pro7-gen10-audio/issues/9)**)
 
 This patch may apply to other devices with the same sound architecture (aw88399 smart amp driving two woofers as side-codecs to a main Realtek HDA codec via I2C). To check if this holds for device x not listed above, please read [this guide](https://github.com/marco-giunta/legion-pro7-gen10-audio#will-this-patch-work-on-other-laptops).
 
