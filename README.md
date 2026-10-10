@@ -13,6 +13,9 @@ Until the stable kernel 7.3 release starts shipping, this guide explains how to 
 
 The only remaining step toward a fully zero-configuration experience is getting the `aw88399_acf.bin` firmware accepted into the `linux-firmware` repository. Until then, users need to install it manually regardless of kernel version.
 
+> [!NOTE]
+> The Legion R9000P AFR10 codec IDs were confirmed after the 7.3 merge window closed; hence, official upstream support for this model will likely be included starting with kernel 7.4 (see [here](https://github.com/marco-giunta/legion-pro7-gen10-audio/issues/9) or [here](https://lore.kernel.org/linux-sound/SN6PR19MB2303D726352EEE508A70D6D4FC922@SN6PR19MB2303.namprd19.prod.outlook.com/T/#u) for updates).
+
 ### Firmware status
 
 The ACF firmware binary for all currently supported Lenovo Legion models [has been submitted by Awinic on behalf of Lenovo to the `linux-firmware` repo](https://lore.kernel.org/linux-firmware/4b70e056-89d9-4d92-8ecb-ecb4c7d48c8a@app.fastmail.com/T/#t), and is currently pending for review; after it gets merged, a follow-up patch series will be needed for the kernel driver to be able to parse these files ([see here](https://github.com/marco-giunta/legion-pro7-gen10-audio/tree/legion_audio/upstream-fw) for more info).
