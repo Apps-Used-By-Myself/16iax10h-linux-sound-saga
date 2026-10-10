@@ -62,20 +62,23 @@ This patch may apply to other devices with the same sound architecture (aw88399 
 
 ## Note on outdated workarounds
 
-Older versions of this patch required either adding `snd_intel_dspcfg.dsp_driver=3` as a kernel boot parameter to force SOF mode, or manually selecting the "Analog Stereo Duplex" profile in the OS sound settings. **Neither is necessary with the current patch.**
+Older versions of this patch required adding `snd_intel_dspcfg.dsp_driver=3` as a kernel boot parameter to force SOF mode, manually configuring volume scales with `amixer`, or manually selecting the "Analog Stereo Duplex" profile in the OS sound settings. **These are no longer necessary with the current patch:**
 
-The `dsp_driver=3` parameter is now actively harmful unless your `alsa-ucm-conf` package is [fully up to date](https://github.com/alsa-project/alsa-ucm-conf/commit/c17dfb63aeff72efb37996049c5dda525c33cd31), as it disables the internal microphone on older versions. Stereo 2.0 profiles are now the only available ones because the current patch suppresses the spurious 4.0 surround profiles that previously appeared alongside it. If you are following a guide that mentions either of these steps, that guide is based on an outdated version of the patch.
+- The `dsp_driver=3` parameter is now actively harmful unless your `alsa-ucm-conf` package is [fully up to date](https://github.com/alsa-project/alsa-ucm-conf/commit/c17dfb63aeff72efb37996049c5dda525c33cd31), as it disables the internal microphone on older versions.
+- Volume controls are now fixed at the kernel level, so no userspace workarounds are needed.
+- Stereo 2.0 profiles are now the only available ones because the current patch suppresses the spurious 4.0 surround profiles that previously appeared alongside it.
+
+If you are following a guide that mentions any of these steps, that guide is based on an outdated version of the patch, and some care is needed (see the note in the "community forks and tools" section below).
 
 ## Patch installation overview
 *At a high level*, getting audio working on the supported Legion requires you do the following:
 
 1. **Install the AW88399 firmware**: copy `aw88399_acf.bin` from this repository to `/lib/firmware/aw88399_acf.bin` (step 1 of the main guide below).
-2. **Obtain and modify the config file used to build your pre-existing kernel**: get the current kernel's configs using e.g. `cp /boot/config-$(uname -r) .config` or `cat /proc/config.gz | gunzip > .config`, and append at the end these lines:
+2. **Obtain and modify the config file used to build your pre-existing kernel**: get the current kernel's configs using e.g. `cp /boot/config-$(uname -r) .config` or `cat /proc/config.gz | gunzip > .config`, and append this line at the end:
 ```
-CONFIG_SND_HDA_SCODEC_AW88399=m
 CONFIG_SND_HDA_SCODEC_AW88399_I2C=m
 ```
-Depending on your build method, you may be able to pass these two options directly as parameters rather than via editing a pre-existing config file.
+Depending on your build method, you may be able to pass this Kconfig directly as a parameter rather than via editing a pre-existing config file.
 
 3. **Patch, compile, and install the Linux kernel** (and also setup e.g. the NVIDIA drivers, initramfs, etc.)
 
@@ -90,7 +93,11 @@ Below you'll find a step-by-step guide which is mostly meant as a general templa
 
 Many forks contain adapted versions of the general guide in order to rely on certain distributions' automation tools; below is a table of the known forks (sorted alphabetically). If you want yours added, please open an issue or a PR.
 
-Note that, apart from [`marco-giunta/legion-pro7-gen10-audio`](https://github.com/marco-giunta/legion-pro7-gen10-audio) (Fedora-specific fork), these tools and guides have *not* been verified by the maintainers of this repo; furthermore, some may be unmaintained and/or based on deprecated versions of the patch (for example, manually configuring volume scales with `amixer` is no longer necessary). Once again, please do your own research.
+Note that, apart from [`marco-giunta/legion-pro7-gen10-audio`](https://github.com/marco-giunta/legion-pro7-gen10-audio) (Fedora-specific fork), these tools and guides have *not* been verified by the maintainers of this repo; furthermore, some may be unmaintained and/or contain extra steps based on deprecated versions of the patch (see "note on outdated workarounds" above). Once again, please do your own research.
+
+As a general rule of thumb, if you use the most recent patch from this repository and ensure `CONFIG_SND_HDA_SCODEC_AW88399_I2C=m` is enabled, any guide's compilation steps will work regardless of the kernel version shown (provided the firmware is installed correctly); any other audio-specific step contradicting the above note on outdated workarounds should be ignored (instead things relating to e.g. NVIDIA drivers, initramfs, secure boot, etc. are part of the kernel building process, and as such are still required).
+
+In other words, the kernel compilation guides below should still be relevant regardless of when they were written (with the caveats mentioned above).
 
 | Distribution | Repository | Notes |
 |---|---|---|
@@ -154,10 +161,9 @@ cp /boot/config-$(uname -r) .config
 cat /proc/config.gz | gunzip > .config
 ```
 
-Then append these two lines to the resulting `.config` file:
+Then append this line to the resulting `.config` file:
 
 ```
-CONFIG_SND_HDA_SCODEC_AW88399=m
 CONFIG_SND_HDA_SCODEC_AW88399_I2C=m
 ```
 
