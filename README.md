@@ -54,14 +54,18 @@ Please don't file issues to complain about something missing. Filing issues abou
 
 ## Supported devices
 
-- Lenovo Legion Pro 7i Gen 10 (**16IAX10H**)
-- Lenovo Legion Pro 7 Gen 10 (**[16AFR10H](https://github.com/nadimkobeissi/16iax10h-linux-sound-saga/issues/30)**)
-- Lenovo Legion Y9000P (**[IAX10](https://github.com/nadimkobeissi/16iax10h-linux-sound-saga/issues/42)**)
-- Lenovo Legion R9000P (**[ADR10](https://github.com/marco-giunta/legion-pro7-gen10-audio/issues/3)**)
-- Lenovo Legion R9000P (**[ADR10H](https://github.com/marco-giunta/legion-pro7-gen10-audio/issues/8)**)
-- Lenovo Legion R9000P (**[AFR10](https://github.com/marco-giunta/legion-pro7-gen10-audio/issues/9)**)
+| Model                         | DMI  | ACPI/codec SSIDs        | Issue thread | Upstream support introduced in |
+|-------------------------------|------|-------------------------|--------------|--------------------------------|
+| Legion Pro 7i Gen 10 16IAX10H | 83F5 | `0x17aa3906/0x17aa3907` | --           | 7.3-rc1                        |
+| Legion Pro 7 Gen 10 16AFR10H  | 83RU | `0x17aa3938/0x17aa3939` | [nadimkobeissi/#30](https://github.com/nadimkobeissi/16iax10h-linux-sound-saga/issues/30) | 7.3-rc1 |
+| Legion Y9000P IAX10           | 83F5 | `0x17aa3906/0x17aa3907` | [nadimkobeissi/#42](https://github.com/nadimkobeissi/16iax10h-linux-sound-saga/issues/42) | 7.3-rc1 |
+| Legion R9000P ADR10           | 83LV | `0x17aa3927/0x17aa3928` | [marco-giunta/#3](https://github.com/marco-giunta/legion-pro7-gen10-audio/issues/3) | 7.3-rc1 |
+| Legion R9000P ADR10H          | 83RV | `0x17aa3936/0x17aa3937` | [marco-giunta/#8](https://github.com/marco-giunta/legion-pro7-gen10-audio/issues/8) | 7.3-rc1 |
+| Legion R9000P AFR10           | 83F6 | `0x17aa3934/0x17aa3935` | [marco-giunta/#9](https://github.com/marco-giunta/legion-pro7-gen10-audio/issues/9) | 7.4-rc1 |
 
-This patch may apply to other devices with the same sound architecture (aw88399 smart amp driving two woofers as side-codecs to a main Realtek HDA codec via I2C). To check if this holds for device x not listed above, please read [this guide](https://github.com/marco-giunta/legion-pro7-gen10-audio#will-this-patch-work-on-other-laptops).
+The driver may apply to other devices with the same sound architecture (legacy HDA, AW88399 smart amp driving two woofers as side-codecs to a main Realtek HDA codec via I2C). To check if this holds for a device not listed above, please read [this guide](https://github.com/marco-giunta/legion-pro7-gen10-audio#will-this-patch-work-on-other-laptops).
+
+If you own a 16ADR10H, IAX10H or AFR10H, please [read this](https://github.com/marco-giunta/legion-pro7-gen10-audio#models-potentially-supported).
 
 ## Note on outdated workarounds
 
