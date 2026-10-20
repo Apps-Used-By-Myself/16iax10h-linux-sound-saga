@@ -6,31 +6,37 @@ This guide explains how to get audio working correctly on the Lenovo Legion Pro 
 
 ### Driver status
 
-The AW88399 HDA side codec driver has been merged into the Linux kernel and is now shipping [starting with kernel 7.3-rc1](https://github.com/torvalds/linux/commit/e5c91aac491def6ab3f90c4cc246e3fcb0f8f058).
-Once you are running kernel 7.3-rc1 or later, the laptop's woofers will work without any custom kernel, **provided the `aw88399_acf.bin` firmware is installed in `/lib/firmware` and the AW88399 HDA modules are loaded correctly** (see the troubleshooting section below).
+The AW88399 HDA side codec driver has been merged into the Linux kernel and is now included in 7.3+.
+Once you are running kernel 7.3 or later, the laptop's woofers will work *without any custom kernel*, **provided the firmware is installed at the correct location and the AW88399 HDA modules are loaded correctly** (see the troubleshooting section below).
 
-Until the stable kernel 7.3 release starts shipping, this guide explains how to enable full audio support on current kernels and will continue to be updated as needed.
-
-The only remaining step toward a fully zero-configuration experience is getting the `aw88399_acf.bin` firmware accepted into the `linux-firmware` repository. Until then, users need to install it manually regardless of kernel version.
+The only remaining step toward a fully zero-configuration experience is getting the firmware binaries accepted into the `linux-firmware` repository. Until then, users need to [install firmware manually](#step-1-install-the-aw88399-firmware) regardless of kernel version.
 
 > [!NOTE]
-> The Legion R9000P AFR10 codec IDs were confirmed after the 7.3 merge window closed; hence, official upstream support for this model will likely be included starting with kernel 7.4 (see [here](https://github.com/marco-giunta/legion-pro7-gen10-audio/issues/9) or [here](https://lore.kernel.org/linux-sound/SN6PR19MB2303D726352EEE508A70D6D4FC922@SN6PR19MB2303.namprd19.prod.outlook.com/T/#u) for updates).
+> The Legion R9000P AFR10 codec IDs were confirmed after the 7.3 merge window closed; hence, official upstream support for this model will be included starting with kernel 7.4.
+> Owners of this model currently need to switch to 7.4-rc1+ kernels, or patch kernels 7.3.x using [this small backport patch](fix/patches/afr10-audio-linux-7.3.patch).
+> Note that unfortunately it's not enough to use the `model=` alc269 module parameter, as that will only work on 7.4.x+ kernels ([see here for more info](https://lore.kernel.org/linux-sound/SN6PR19MB230304C2E75499FE23B53885FC8F2@SN6PR19MB2303.namprd19.prod.outlook.com/T/#t)).
 
 ### Firmware status
 
-The ACF firmware binary for all currently supported Lenovo Legion models [has been submitted by Awinic on behalf of Lenovo to the `linux-firmware` repo](https://lore.kernel.org/linux-firmware/4b70e056-89d9-4d92-8ecb-ecb4c7d48c8a@app.fastmail.com/T/#t), and is currently pending for review; after it gets merged, a follow-up patch series will be needed for the kernel driver to be able to parse these files ([see here](https://github.com/marco-giunta/legion-pro7-gen10-audio/tree/legion_audio/upstream-fw) for more info).
+Firmware binaries for all currently supported Lenovo Legion models [have been submitted by Awinic on behalf of Lenovo to the `linux-firmware` repo](https://lore.kernel.org/linux-firmware/4b70e056-89d9-4d92-8ecb-ecb4c7d48c8a@app.fastmail.com/T/#t) (currently pending for review); until these files are merged and start being packaged by distros, users need to install firmware manually regardless of kernel version.
 
-## Audio still broken even on kernel 7.3-rc1+
+> [!IMPORTANT]
+> Kernel 7.4 includes [breaking changes regarding firmware loading](https://lore.kernel.org/linux-sound/87wlrdin6q.wl-tiwai@suse.de/T/#t): users running 7.4-rc1+ will need to reinstall firmware to a different location (`/lib/firmware/awinic/aw88399_acf_<SSID>.bin` instead of `/lib/firmware/aw88399_acf.bin`). See [step 1 of the main guide below](#step-1-install-the-aw88399-firmware) for instructions.
 
-If you are on kernel 7.3-rc1 or later and audio is still broken, please perform these checks before opening an issue:
+## Audio still broken even on kernel 7.3+
+
+If you are on kernel 7.3 or later and audio is still broken, please perform these checks before opening an issue:
 
 1. Is the firmware installed?
 
 ```bash
+# on kernels <7.4-rc1:
 ls /lib/firmware/aw88399_acf.bin
+# on kernels >=7.4-rc1:
+ls /lib/firmware/awinic/aw88399_acf_*.bin
 ```
 
-If this returns "No such file or directory", the firmware is missing. Copy `aw88399_acf.bin` from this repository to `/lib/firmware/aw88399_acf.bin` and reboot (see step 1 of the main guide below). *This step is required regardless of kernel version until the firmware is accepted into the `linux-firmware` repository.*
+If this returns "No such file or directory", the firmware is missing. Install the firmware by following the instruction at [step 1 of the main guide below](#step-1-install-the-aw88399-firmware). *This step is required regardless of kernel version until firmware binaries are accepted into the `linux-firmware` repository and start being shipped by distributions.*
 
 2. Are the kernel modules loaded?
 
@@ -77,10 +83,10 @@ Older versions of this patch required adding `snd_intel_dspcfg.dsp_driver=3` as 
 
 If you are following a guide that mentions any of these steps, that guide is based on an outdated version of the patch, and some care is needed (see the note in the "community forks and tools" section below).
 
-## Patch installation overview
+## Patch installation overview (kernels <7.3 or 7.3+ codec IDs backports)
 *At a high level*, getting audio working on the supported Legion requires you do the following:
 
-1. **Install the AW88399 firmware**: copy `aw88399_acf.bin` from this repository to `/lib/firmware/aw88399_acf.bin` (step 1 of the main guide below).
+1. **Install the AW88399 firmware**: copy `aw88399_acf.bin` from this repository to the correct location depending on your kernel version ([step 1 of the main guide below](#step-1-install-the-aw88399-firmware)).
 2. **Obtain and modify the config file used to build your pre-existing kernel**: get the current kernel's configs using e.g. `cp /boot/config-$(uname -r) .config` or `cat /proc/config.gz | gunzip > .config`, and append this line at the end:
 ```
 CONFIG_SND_HDA_SCODEC_AW88399_I2C=m
@@ -107,7 +113,7 @@ As a general rule of thumb, if you use the most recent patch from this repositor
 In other words, the kernel compilation guides below should still be relevant regardless of when they were written (with the caveats mentioned above).
 
 | Distribution | Repository | Notes |
-|---|---|---|
+|--------------|------------|-------|
 | Arch Linux | [imitoy/linux-legion-audio-fix](https://github.com/imitoy/linux-legion-audio-fix) | Pre-built pacman repository with patched kernel and firmware packages: add the repo to `/etc/pacman.conf` and install, zero compilation required. |
 | Arch Linux | [imitoy/linux-PKGBUILD](https://github.com/imitoy/linux-PKGBUILD) | Automated build and install via `makepkg`, with a `PKGBUILD` that automatically downloads the patch. Companion [firmware package](https://github.com/imitoy/aw88399_acf-PKGBUILD) also available. |
 | Arch Linux | [zty012/16iax10h-linux-sound-saga](https://github.com/zty012/16iax10h-linux-sound-saga/blob/main/ARCH.md) | Simplified compilation & installation method based on editing the `PKGBUILD` file of the `linux` package. |
@@ -129,10 +135,24 @@ A detailed step-by-step guide for Arch Linux and Fedora (based on the general me
 
 ### Step 1: Install the AW88399 Firmware
 
+#### Kernels <7.4-rc1 (any stock 7.3 or <=7.2 patched with the patch from this repo)
 Copy the `aw88399_acf.bin` file provided in this repository to `/lib/firmware/aw88399_acf.bin`:
 
 ```bash
-cp -f fix/firmware/aw88399_acf.bin /lib/firmware/aw88399_acf.bin
+sudo cp fix/firmware/aw88399_acf.bin /lib/firmware/aw88399_acf.bin
+```
+
+#### Kernels >=7.4-rc1
+Starting with kernel 7.4, the firmware path changes from `/lib/firmware/aw88399_acf.bin` to `/lib/firmware/awinic/aw88399_acf_<SSID>.bin`, where `<SSID>` is the ACPI SSID for your device.
+
+Once the firmware binaries are officially accepted and start shipping with distributions, you will only need to update your firmware packages. Until then, you will need to install them manually to the new location:
+
+1. Identify the two ACPI/codec SSIDs of your device from the ["supported devices" table above](#supported-devices). For example, the Legion Pro 7i 16IAX10H has as its two IDs `17aa3906` and `17aa3907` (ignore the `0x` part in front).
+2. Copy the same `/lib/firmware/aw88399_acf.bin` file you already have to both `/lib/firmware/awinic/aw88399_acf_<SSID-1>.bin` and `/lib/firmware/awinic/aw88399_acf_<SSID-2>.bin` (**ensure the SSID part is lowercase and without `0x` in front**). For example, on the 16IAX10H:
+```sh
+sudo mkdir -p /lib/firmware/awinic
+sudo cp /lib/firmware/aw88399_acf.bin /lib/firmware/awinic/aw88399_acf_17aa3906.bin
+sudo cp /lib/firmware/aw88399_acf.bin /lib/firmware/awinic/aw88399_acf_17aa3907.bin
 ```
 
 If you prefer to obtain your own copy of this firmware blob, [follow these instructions](https://bugzilla.kernel.org/show_bug.cgi?id=218329#c18).
