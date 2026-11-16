@@ -18,10 +18,17 @@ The only remaining step toward a fully zero-configuration experience is getting 
 
 ### Firmware status
 
-Firmware binaries for all currently supported Lenovo Legion models [have been submitted by Awinic on behalf of Lenovo to the `linux-firmware` repo](https://lore.kernel.org/linux-firmware/4b70e056-89d9-4d92-8ecb-ecb4c7d48c8a@app.fastmail.com/T/#t) (currently pending for review); until these files are merged and start being packaged by distros, users need to install firmware manually regardless of kernel version.
+The required firmware binaries for the supported Lenovo Legion models have been [merged in the `linux-firmware` repo on 2026/11/14](https://gitlab.com/kernel-firmware/linux-firmware/-/commit/1cafb17a3ead182e37ab572964bee2a692a554c5); until these files start being packaged by distributions, users will need to install firmware manually regardless of kernel version.
 
 > [!IMPORTANT]
-> Kernel 7.4 includes [breaking changes regarding firmware loading](https://lore.kernel.org/linux-sound/87wlrdin6q.wl-tiwai@suse.de/T/#t): users running 7.4-rc1+ will need to reinstall firmware to a different location (`/lib/firmware/awinic/aw88399_acf_<SSID>.bin` instead of `/lib/firmware/aw88399_acf.bin`). See [step 1 of the main guide below](#step-1-install-the-aw88399-firmware) for instructions.
+> The driver included in kernel 7.3 requests firmware under a different path and will not find the officially packaged files; therefore, on versions 7.3.x, manual firmware installation will be needed regardless.
+>
+> Kernel 7.4 includes [breaking changes regarding firmware loading](https://lore.kernel.org/linux-sound/87wlrdin6q.wl-tiwai@suse.de/T/#t) that allow the driver to make use of these files; therefore, users running 7.4-rc1+ will need to reinstall firmware to a different location (`/lib/firmware/awinic/aw88399_acf_<SSID>.bin` instead of `/lib/firmware/aw88399_acf.bin`), but only until the official firmware packages ship.
+>
+> For either case, see [step 1 of the main guide below](#step-1-install-the-aw88399-firmware) for instructions.
+
+> [!IMPORTANT]
+> The AFR10 model's IDs (17aa3934/5) were reported after the original firmware submission. Therefore, AFR10 owners will still have to install firmware manually for now (see above).
 
 ## Audio still broken even on kernel 7.3+
 
@@ -53,6 +60,10 @@ zcat /proc/config.gz | grep CONFIG_SND_HDA_SCODEC_AW88399
 ```
 
 `CONFIG_SND_HDA_SCODEC_AW88399_I2C=m` needs to be there for the driver to work. If instead you see `# CONFIG_SND_HDA_SCODEC_AW88399_I2C is not set`, your distribution has not enabled the driver; contact your kernel maintainers and ask them to enable this config parameter.
+
+3. Did you blacklist the `i915` module?
+
+Add `snd_hda_core.gpu_bind=0` to the boot parameters; see [#69](https://github.com/nadimkobeissi/16iax10h-linux-sound-saga/issues/69) for more info.
 
 ## Filing issues
 
